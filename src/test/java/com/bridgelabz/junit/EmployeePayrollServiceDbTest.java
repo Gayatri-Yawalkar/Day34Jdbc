@@ -1,5 +1,5 @@
 package com.bridgelabz.junit;
-//Uc3
+//Uc4
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import java.util.List;
@@ -18,7 +18,8 @@ public class EmployeePayrollServiceDbTest {
 	public void givenNewSalaryForEmployee_whenUpdated_shouldSyncWithDb() {
 		EmployeePayrollService employeePayrollService=new EmployeePayrollService();
 		List<EmployeePayrollData> employeePayrollData=employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-		int actualResult=employeePayrollService.updateEmployeeSalary("Gayatri",50000.00);
-		assertEquals(1,actualResult);
+		employeePayrollService.updateEmployeeSalary("Gayatri",50002.00);
+		boolean result=employeePayrollService.checkEmployeePayrollSyncWithDb("Gayatri");
+		assertTrue(result);
 	}
 }

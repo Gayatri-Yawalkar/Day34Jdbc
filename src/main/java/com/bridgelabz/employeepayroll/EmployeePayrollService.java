@@ -1,5 +1,5 @@
 package com.bridgelabz.employeepayroll;
-//Uc3
+//Uc4
 import java.util.List;
 import java.util.Scanner;
 public class EmployeePayrollService {
@@ -38,16 +38,15 @@ public class EmployeePayrollService {
 		}
 		return null;
 	}
-	public int updateEmployeeSalary(String name,double salary) {
+	public void updateEmployeeSalary(String name,double salary) {
 		int result=employeePayrollDbService.updateSalary(name, salary);
 		if(result==0) {
-			return result;
+			return;
 		}
 		EmployeePayrollData employeePayrollData=this.getEmployeePayrollData(name);
 		if(employeePayrollData!=null) {
 			employeePayrollData.salary=salary;
 		}
-		return result;
 	}
 	private EmployeePayrollData getEmployeePayrollData(String name) {
 		EmployeePayrollData employeePayrollData;
@@ -56,6 +55,10 @@ public class EmployeePayrollService {
 				.findFirst()
 				.orElse(null);
 		return employeePayrollData;
+	}
+	public boolean checkEmployeePayrollSyncWithDb(String name) {
+		List<EmployeePayrollData> employeePayrollDataList=employeePayrollDbService.getEmployeePayrollData(name);
+		return employeePayrollDataList.get(0).equals(getEmployeePayrollData(name));
 	}
 	public void printData(IOService ioService) {
 		if(ioService.equals(IOService.FILE_IO)) {
