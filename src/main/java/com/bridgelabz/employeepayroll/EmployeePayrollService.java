@@ -1,5 +1,5 @@
 package com.bridgelabz.employeepayroll;
-//Uc2
+//Uc3
 import java.util.List;
 import java.util.Scanner;
 public class EmployeePayrollService {
@@ -7,11 +7,13 @@ public class EmployeePayrollService {
 		CONSOLE_IO,FILE_IO,DB_IO,REST_IO
 	}
 	public List<EmployeePayrollData> employeePayrollList;
-	public EmployeePayrollService(List<EmployeePayrollData> employeePayrollList) {
-		this.employeePayrollList=employeePayrollList;
-	}
+	public EmployeePayrollDbService employeePayrollDbService;
 	public EmployeePayrollService() {
-
+		employeePayrollDbService=EmployeePayrollDbService.getInstance();
+	}
+	public EmployeePayrollService(List<EmployeePayrollData> employeePayrollList) {
+		this();
+		this.employeePayrollList=employeePayrollList;
 	}
 	public void writeEmployeePayrollData(IOService ioService) {
 		if(ioService.equals(IOService.CONSOLE_IO)) {
@@ -31,11 +33,29 @@ public class EmployeePayrollService {
 	}
 	public List<EmployeePayrollData> readEmployeePayrollData(IOService ioService) {
 		if(ioService.equals(IOService.DB_IO)) {
-			this.employeePayrollList=new EmployeePayrollDbService().readData();
+			this.employeePayrollList=employeePayrollDbService.readData();
 			return this.employeePayrollList;
 		}
 		return null;
-		
+	}
+	public int updateEmployeeSalary(String name,double salary) {
+		int result=employeePayrollDbService.updateSalary(name, salary);
+		if(result==0) {
+			return result;
+		}
+		EmployeePayrollData employeePayrollData=this.getEmployeePayrollData(name);
+		if(employeePayrollData!=null) {
+			employeePayrollData.salary=salary;
+		}
+		return result;
+	}
+	private EmployeePayrollData getEmployeePayrollData(String name) {
+		EmployeePayrollData employeePayrollData;
+		employeePayrollData=this.employeePayrollList.stream()
+				.filter(employeePayrollDataItem->employeePayrollDataItem.name.equals(name))
+				.findFirst()
+				.orElse(null);
+		return employeePayrollData;
 	}
 	public void printData(IOService ioService) {
 		if(ioService.equals(IOService.FILE_IO)) {

@@ -1,7 +1,8 @@
 package com.bridgelabz.employeepayroll;
-//Uc2
+//Uc3
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -9,25 +10,31 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 public class EmployeePayrollDbService {
+	private static EmployeePayrollDbService employeePayrollDbService;
+	private EmployeePayrollDbService() {
+	}
+	public static EmployeePayrollDbService getInstance() {
+		if(employeePayrollDbService==null) {
+			employeePayrollDbService=new EmployeePayrollDbService();
+		}
+		return employeePayrollDbService;
+	}
 	public List<EmployeePayrollData> readData(){
 		String sql="SELECT * FROM employeepayroll;";
 		List<EmployeePayrollData> employeePayrollList=new ArrayList<>();
-		try {
-			Connection connection=this.getConnection();
+		try (Connection connection=this.getConnection();){
 			Statement statement=connection.createStatement();
-			ResultSet result=statement.executeQuery(sql);
-			while(result.next()) {
-				int id=result.getInt("id");
-				String name=result.getString("name");
-				double salary=result.getDouble("salary");
-				LocalDate startDate=result.getDate("start").toLocalDate();
+			ResultSet resultSet=statement.executeQuery(sql);
+			while(resultSet.next()) {
+				int id=resultSet.getInt("id");
+				String name=resultSet.getString("name");
+				double salary=resultSet.getDouble("salary");
+				LocalDate startDate=resultSet.getDate("start").toLocalDate();
 				employeePayrollList.add(new EmployeePayrollData(id, name,salary,startDate));
 			}
-			connection.close();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
 		return employeePayrollList;
 	}
 	private Connection getConnection() throws SQLException {
@@ -37,7 +44,31 @@ public class EmployeePayrollDbService {
 		Connection con;
 		System.out.println("Connecting to database:"+jdbcUrl);
 		con=DriverManager.getConnection(jdbcUrl, userName, password);
-		System.out.println("Coonection is successfull");
+		System.out.println("Connection is successfull");
 		return con;
+	}
+	public List<EmployeePayrollData> getEmployeePayrollData(String name){
+		List<EmployeePayrollData> employeePayrollList=null;
+		if(this.employeePayrollDataStatement==null) {
+			this.prepareStatementForEmployeeData();
+		}
+		try {
+			employeePayrollDataStatement.setString(1,name);
+			ResultSet resultSet=employeePayrollDataStatement.executeQuery();
+			employeePayrollList=this.getEmployeePayrollData(resultSet);
+		} catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return employeePayrollList;
+	}
+	public int updateSalary(String name,double salary) {
+		String sql=String.format("update employeepayroll set salary=%.2f where name='%s';",salary,name);
+		try (Connection connection=this.getConnection();){
+			Statement statement=connection.createStatement();
+			return statement.executeUpdate(sql);
+		} catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return 0;
 	}
 }
