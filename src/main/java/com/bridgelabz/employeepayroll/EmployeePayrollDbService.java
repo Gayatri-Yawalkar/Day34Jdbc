@@ -1,5 +1,7 @@
 package com.bridgelabz.employeepayroll;
+//Uc5
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,7 +9,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 public class EmployeePayrollDbService {
 	private static EmployeePayrollDbService employeePayrollDbService;
 	private PreparedStatement employeePayrollDataStatement;
@@ -21,25 +25,7 @@ public class EmployeePayrollDbService {
 	}
 	public List<EmployeePayrollData> readData(){
 		String sql="SELECT * FROM employeepayroll;";
-		List<EmployeePayrollData> employeePayrollList=new ArrayList<>();
-		try (Connection connection=this.getConnection();){
-			Statement statement=connection.createStatement();
-			ResultSet resultSet=statement.executeQuery(sql);
-			employeePayrollList=this.getEmployeePayrollData(resultSet);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		return employeePayrollList;
-	}
-	private Connection getConnection() throws SQLException {
-		String jdbcUrl="jdbc:mysql://localhost:3306/payrollservice?useSSL=false";
-		String userName="root";
-		String password="root";
-		Connection con;
-		System.out.println("Connecting to database:"+jdbcUrl);
-		con=DriverManager.getConnection(jdbcUrl, userName, password);
-		System.out.println("Connection is successfull");
-		return con;
+		return this.getEmployeePayrollDataUsingDB(sql);
 	}
 	public List<EmployeePayrollData> getEmployeePayrollData(String name){
 		List<EmployeePayrollData> employeePayrollList=null;
@@ -51,6 +37,32 @@ public class EmployeePayrollDbService {
 			ResultSet resultSet=employeePayrollDataStatement.executeQuery();
 			employeePayrollList=this.getEmployeePayrollData(resultSet);
 		} catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return employeePayrollList;
+	}
+	public List<EmployeePayrollData> getEmployeeDateRange(LocalDate startDate, LocalDate endDate) {
+		String sql=String.format("SELECT * FROM employeepayroll WHERE start BETWEEN '%s' AND '%s';",
+				       Date.valueOf(startDate),Date.valueOf(endDate));
+		return this.getEmployeePayrollDataUsingDB(sql);
+	}
+	private Connection getConnection() throws SQLException {
+		String jdbcUrl="jdbc:mysql://localhost:3306/payrollservice?useSSL=false";
+		String userName="root";
+		String password="root";
+		Connection con;
+		System.out.println("Connecting to database:"+jdbcUrl);
+		con=DriverManager.getConnection(jdbcUrl, userName, password);
+		System.out.println("Connection is successfull");
+		return con;
+	}
+	private List<EmployeePayrollData> getEmployeePayrollDataUsingDB(String sql) {
+		List<EmployeePayrollData> employeePayrollList=new ArrayList<>();
+		try (Connection connection=this.getConnection();){
+			Statement statement=connection.createStatement();
+			ResultSet resultSet=statement.executeQuery(sql);
+			employeePayrollList=this.getEmployeePayrollData(resultSet);
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return employeePayrollList;
@@ -78,7 +90,6 @@ public class EmployeePayrollDbService {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
 	}
 	public int updateSalary(String name,double salary) {
 		String sql=String.format("update employeepayroll set salary=%.2f where name='%s';",salary,name);
