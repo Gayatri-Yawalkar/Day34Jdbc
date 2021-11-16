@@ -1,5 +1,5 @@
 package com.bridgelabz.employeepayroll;
-//Uc5
+//Uc6
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -46,6 +46,22 @@ public class EmployeePayrollDbService {
 				       Date.valueOf(startDate),Date.valueOf(endDate));
 		return this.getEmployeePayrollDataUsingDB(sql);
 	}
+	public Map<String,Double> getAverageSalaryByGender(){
+		String sql="SELECT gender,AVG(salary) FROM employeepayroll GROUP BY gender;";
+		Map<String,Double> genderToAverageSalaryMap=new HashMap<>();
+		try (Connection connection=this.getConnection();){
+			Statement statement=connection.createStatement();
+			ResultSet resultSet=statement.executeQuery(sql);
+			while(resultSet.next()) {
+				String gender=resultSet.getString("gender");
+				Double salary=resultSet.getDouble("AVG(salary)");
+				genderToAverageSalaryMap.put(gender, salary);
+			}
+		} catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return genderToAverageSalaryMap;
+	}
 	private Connection getConnection() throws SQLException {
 		String jdbcUrl="jdbc:mysql://localhost:3306/payrollservice?useSSL=false";
 		String userName="root";
@@ -90,6 +106,7 @@ public class EmployeePayrollDbService {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		
 	}
 	public int updateSalary(String name,double salary) {
 		String sql=String.format("update employeepayroll set salary=%.2f where name='%s';",salary,name);
